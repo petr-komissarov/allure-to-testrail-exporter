@@ -1,0 +1,55 @@
+buildscript {
+    repositories {
+        mavenCentral()
+        maven { url "https://dl.bintray.com/jetbrains/intellij-plugin-service/" }
+    }
+}
+
+plugins {
+    id "java"
+    id "org.jetbrains.intellij" version "${intelliJPluginVersion}"
+}
+
+version "${projectVersion}"
+setSourceCompatibility(JavaVersion.VERSION_11)
+setTargetCompatibility(getSourceCompatibility())
+
+wrapper {
+    setGradleVersion("$gradleVersion")
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation("com.squareup.okhttp3:logging-interceptor:${okHttp3Version}")
+    implementation("com.squareup.retrofit2:retrofit:${retrofit2Version}")
+    implementation("com.squareup.retrofit2:converter-gson:${retrofit2Version}")
+    implementation("org.aspectj:aspectjrt:${aspectJRTVersion}")
+    implementation("org.apache.commons:commons-lang3:${apacheCommonsLang3Version}")
+}
+
+apply plugin: "org.jetbrains.intellij"
+apply plugin: "java"
+apply plugin: "idea"
+
+intellij {
+    version = "$intelliJVersion"
+    plugins = ["properties", "java"]
+    pluginName "Allure to TestRail"
+    updateSinceUntilBuild = false
+
+    patchPluginXml {
+        sinceBuild "192"
+    }
+
+    buildSearchableOptions.enabled = false
+}
+
+idea {
+    module {
+        downloadJavadoc = true
+        downloadSources = true
+    }
+}

@@ -1,0 +1,60 @@
+stages:
+  - compile
+  - dependency_check
+  - scan
+
+compile-sources:
+  stage: compile
+  image: gradle:6.7.1-jdk11
+  variables:
+    GRADLE_OPTS: "-Dorg.gradle.daemon=false"
+  only:
+    - master
+    - merge_requests
+  script:
+    - chmod +x gradlew
+    - ./gradlew classes
+  artifacts:
+    expire_in: 1h
+    paths:
+      - build/classes
+
+dependencies-check:
+  stage: dependency_check
+  only:
+    - master
+    - merge_requests
+  except:
+    changes:
+      - "ci/*"
+  image:
+    name: owasp/dependency-check:latest
+    entrypoint: [ "" ]
+  before_script:
+    - mkdir -p ci/reports
+  script:
+    - /usr/share/dependency-check/bin/dependency-check.sh
+      --format HTML
+      --format JSON
+      --out ci/reports
+      --project allure-to-testrail-exporter
+      --scan .
+  artifacts:
+    paths:
+      - ci/reports/dependency-check-report.*
+    expire_in: 1h
+
+run_sonarscanner:
+  stage: scan
+  image: sonarsource/sonar-scanner-cli:latest
+  only:
+    - master
+    - merge_requests
+  except:
+    changes:
+      - "ci/*"
+  before_script:
+    - cp -f ./ci/sonar-project.properties /opt/sonar-scanner/conf/sonar-scanner.properties
+  script:
+    - sonar-scanner
+  allow_failure: false
